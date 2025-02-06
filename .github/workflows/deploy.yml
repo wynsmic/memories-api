@@ -3,7 +3,7 @@ name: Deploy to AWS Lightsail
 on:
   push:
     branches:
-      - main  # Change if needed
+      - main 
 
 jobs:
   deploy:
@@ -13,19 +13,61 @@ jobs:
     - name: Checkout Repository
       uses: actions/checkout@v3
 
-    - name: Set up SSH key
-      run: |
-        echo "${{ secrets.LIGHTSAIL_SSH_KEY }}" > lightsail_key.pem
-        chmod 600 lightsail_key.pem
-
     - name: Deploy to AWS Lightsail
       uses: appleboy/ssh-action@v0.1.10
       with:
         host: ${{ secrets.LIGHTSAIL_HOST }}
-        username: ubuntu
+        username: ${{ secrets.LIGHTSAIL_USER }}
         key: ${{ secrets.LIGHTSAIL_SSH_KEY }}
         script: |
+          # Ensure the .ssh directory exists
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+
+          # Write the SSH key properly while preserving newlines
+          echo "${{ secrets.LIGHTSAIL_SSH_KEY }}" > ~/.ssh/id_rsa
+
+          # Set correct permissions
+          chmod 600 ~/.ssh/id_rsa
+
+          # Add GitHub to known hosts to prevent host verification issues
+          ssh-keyscan github.com >> ~/.ssh/known_hosts
+
+          # Install Node.js and npm if not present
+          if ! command -v npm &> /dev/null; then
+            echo "npm not found. Installing..."
+            curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash - 
+            sudo apt-get install -y nodejs
+          fi
+
+          if ! command -v pm2 &> /dev/null; then
+            echo "PM2 not found. Installing..."
+            sudo npm install -g pm2
+          fi
+
+            # Delete the existing project folder (to avoid conflicts)
+            echo "Removing existing project folder..."
+            rm -rf /home/ubuntu/memories-api
+
+            # Clone the latest version
+            echo "Cloning repository..."
+            git clone git@github.com:wynsmic/memories-api.git /home/ubuntu/memories-api || exit 1
+
+
+
+          # Navigate to the project directory
           cd /home/ubuntu/memories-api
-          git pull origin main
-          npm install --production
-          pm2 restart backend || pm2 start server.js --name backend
+          
+          # Pull latest changes
+          git pull origin main || exit 1
+
+          # Install dependencies
+          npm install --production || exit 1
+
+          # Compile TypeScript
+          npm run build || exit 1
+
+          # Start or restart PM2
+          pm2 restart backend || pm2 start dist/src/server.js --name backend || exit 1
+
+          echo "Deployment complete!"

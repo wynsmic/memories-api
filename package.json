@@ -6,7 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "eslint ./src --ext .ts",
-    "start": "NODE_ENV=development tsc-watch --onSuccess \"nodemon dist/server.js\"",
+    "build": "tsc",
+    "dev": "NODE_ENV=development tsc-watch --onSuccess \"nodemon dist/server.js\"",
     "ngrock": "ngrok http 4040"
   },
   "keywords": [],
