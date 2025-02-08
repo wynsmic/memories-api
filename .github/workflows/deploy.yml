@@ -62,12 +62,12 @@ jobs:
           git pull origin main || exit 1
 
           # Install dependencies
-          npm install --production || exit 1
+          npm install || exit 1
 
           # Compile TypeScript
           npm run build || exit 1
 
           # Start or restart PM2
-          pm2 restart backend || pm2 start dist/src/server.js --name backend || exit 1
+          export NODE_ENV=production &&  pm2 restart backend || pm2 start dist/src/server.js --name backend || exit 1
 
           echo "Deployment complete!"
