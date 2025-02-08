@@ -14,14 +14,11 @@ export class GladiaApi {
     const formData = new FormData();
     formData.append("audio", fs.createReadStream(filePath));
 
-    const response = await axios<void, { data: gladia.UploadResponse }>({
-      url: "https://api.gladia.io/v2/upload",
-      method: "POST",
+    const response = await axios.post<gladia.UploadResponse>("https://api.gladia.io/v2/upload", formData, {
       headers: {
         "Content-Type": "multipart/form-data",
-        "x-gladia-key": process.env.GLADIA_API_KEY,
+        "x-gladia-key": process.env.GLADIA_API_KEY as string, // Make sure GLADIA_API_KEY is available
       },
-      data: formData,
     });
     return response.data;
   };
@@ -54,18 +51,16 @@ export class GladiaApi {
       detect_language: true,
       enable_code_switching: false,
     };
-    const response = await axios<
-      void,
-      { data: gladia.RequestForTranscriptionReponse }
-    >({
-      url: `${process.env.GLADIA_API_URL}/v2/transcription`,
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-gladia-key": process.env.GLADIA_API_KEY,
-      },
-      data: body,
-    });
+    const response = await axios.post<gladia.RequestForTranscriptionReponse>(
+      `${process.env.GLADIA_API_URL}/v2/transcription`, 
+      body,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          "x-gladia-key": process.env.GLADIA_API_KEY,
+        }
+      }
+    );
 
     this.logger.info({
       component: "GladiaApi",
