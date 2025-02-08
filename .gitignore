@@ -53,3 +53,4 @@ build
 coverage
 dist
 
+*.env

@@ -14,6 +14,5 @@ export const inputLoggerMiddleware = (
     data: req.url,
   });
 
-  //req.body && console.log(req.body);
   return next();
 };

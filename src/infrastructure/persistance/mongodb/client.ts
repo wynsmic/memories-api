@@ -9,6 +9,8 @@ export class MongoDBClient {
   private logger = new Logger();
 
   private constructor() {
+    console.log(process.env.MONGO_CONNECTION_STRING);
+    
     const dbConnectionString = process.env.MONGO_CONNECTION_STRING ?? "";
     const params = {}
     this.client = new mongoDB.MongoClient(dbConnectionString, params);
@@ -33,7 +35,7 @@ export class MongoDBClient {
 
   async connect(): Promise<void> {
     try {
-      const databaseName = process.env.MONGO_DATABASE_NAME;
+      const databaseName = "memories";
 
       await this.client.connect();
       this.db = this.client.db(databaseName);

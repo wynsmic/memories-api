@@ -3,71 +3,69 @@ name: Deploy to AWS Lightsail
 on:
   push:
     branches:
-      - main 
+      - main
+      - staging
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }} 
 
     steps:
-    - name: Checkout Repository
-      uses: actions/checkout@v3
+      - name: Checkout Repository
+        uses: actions/checkout@v3
 
-    - name: Deploy to AWS Lightsail
-      uses: appleboy/ssh-action@v0.1.10
-      with:
-        host: ${{ secrets.LIGHTSAIL_HOST }}
-        username: ${{ secrets.LIGHTSAIL_USER }}
-        key: ${{ secrets.LIGHTSAIL_SSH_KEY }}
-        script: |
-          # Ensure the .ssh directory exists
-          mkdir -p ~/.ssh
-          chmod 700 ~/.ssh
+      - name: ckeck AWS SSH Key
+        run: |
+            echo " host: ${{ vars.AWS_HOST }}"
+            echo " username: ${{ vars.AWS_USER }} "
+            echo " key: ${{ secrets.AWS_SSH_KEY }} "    
 
-          # Write the SSH key properly while preserving newlines
-          echo "${{ secrets.LIGHTSAIL_SSH_KEY }}" > ~/.ssh/id_rsa
+      - name: Deploy to AWS
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ vars.AWS_HOST }}
+          username: ${{ vars.AWS_USER }}
+          key: ${{ secrets.AWS_SSH_KEY }}
+          script: |
+            set -e
+            echo "Deploying application..."
 
-          # Set correct permissions
-          chmod 600 ~/.ssh/id_rsa
+            # Init the project directory
+            rm ~/.pm2/logs/backend-error.log 
+            rm ~/.pm2/logs/backend-out.log 
+            PROJECT_DIR="/home/ubuntu/memories-api"
+            if [ -d "$PROJECT_DIR" ]; then
+              rm -rf $PROJECT_DIR
+            fi
 
-          # Add GitHub to known hosts to prevent host verification issues
-          ssh-keyscan github.com >> ~/.ssh/known_hosts
+            # Give auth to clone
+            mkdir -p ~/.ssh
+            echo "${{ secrets.AWS_SSH_KEY }}" > ~/.ssh/id_rsa
+            chmod 600 ~/.ssh/id_rsa
 
-          # Install Node.js and npm if not present
-          if ! command -v npm &> /dev/null; then
-            echo "npm not found. Installing..."
-            curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash - 
-            sudo apt-get install -y nodejs
-          fi
+            # Clone repository
+            git clone git@github.com:wynsmic/memories-api.git $PROJECT_DIR
+            cd $PROJECT_DIR
 
-          if ! command -v pm2 &> /dev/null; then
-            echo "PM2 not found. Installing..."
-            sudo npm install -g pm2
-          fi
-
-            # Delete the existing project folder (to avoid conflicts)
-            echo "Removing existing project folder..."
-            rm -rf /home/ubuntu/memories-api
-
-            # Clone the latest version
-            echo "Cloning repository..."
-            git clone git@github.com:wynsmic/memories-api.git /home/ubuntu/memories-api || exit 1
+            # Install dependencies & build project
+            npm install
+            npm run build
 
 
+            echo "Writing environment file..."
+            NODE_ENV="${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}"
+            mkdir -p ./config
+            cat <<EOF > ./config/.${NODE_ENV}.env
+            MONGO_CONNECTION_STRING=${{ secrets.MONGO_CONNECTION_STRING }}
+            NODE_ENV=${NODE_ENV}
+            SERVER_PORT=${{ vars.SERVER_PORT }}
+            WEBAPP_CLIENT_URL=${{ vars.WEBAPP_CLIENT_URL }}
+            EOF
 
-          # Navigate to the project directory
-          cd /home/ubuntu/memories-api
-          
-          # Pull latest changes
-          git pull origin main || exit 1
+            # Restart PM2 process
+            pm2 restart backend || pm2 start /home/ubuntu/memories-api/dist/server.js --name backend
 
-          # Install dependencies
-          npm install || exit 1
-
-          # Compile TypeScript
-          npm run build || exit 1
-
-          # Start or restart PM2
-          export NODE_ENV=production &&  pm2 restart backend || pm2 start dist/src/server.js --name backend || exit 1
-
-          echo "Deployment complete!"
+      - name: Deployment Completed
+        run: |
+          echo "Deployment to $(echo $GITHUB_REF | sed 's/refs\/heads\///') complete!"
