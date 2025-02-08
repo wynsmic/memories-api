@@ -3,7 +3,7 @@ import * as dotenv from "dotenv";
 import { Logger } from "./infrastructure/logger";
 import { MongoDBClient } from "./infrastructure/persistance/mongodb/client";
 import { createServer } from 'http';
-import { SocketAdapter } from './adapters/socket/SocketAdapter';
+import { SocketAdapter } from "./adapters/primary/websocket/SocketAdapter";
 
 const logger = new Logger();
 

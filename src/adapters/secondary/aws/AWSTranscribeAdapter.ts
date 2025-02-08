@@ -41,7 +41,7 @@ export class AWSTranscribeAdapter implements TranscriptionPort {
       this.logger.error({
         component: "AWSTranscribeAdapter",
         message: "Error in transcription",
-        error
+        data: {error}
       });
       throw error;
     }
