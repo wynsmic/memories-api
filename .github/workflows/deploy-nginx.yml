@@ -1,0 +1,54 @@
+name: Nginx deployment
+
+on:
+  workflow_run:
+    workflows: ["Deploy server to AWS"]
+    types:
+      - completed
+
+jobs:
+  deploy-nginx:
+      runs-on: ubuntu-latest
+      environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }} #to know which git env variable to bring
+
+      steps:
+        - name: ckeck AWS SSH Key
+          run: |
+            echo " host: ${{ vars.AWS_HOST }}"
+            echo " username: ${{ vars.AWS_USER }} "
+            echo " key: ${{ secrets.AWS_SSH_KEY }} "
+
+        - name: Install & Configure Nginx
+          uses: appleboy/ssh-action@v0.1.10
+          with:
+            host: ${{ vars.AWS_HOST }}
+            username: ${{ vars.AWS_USER }}
+            key: ${{ secrets.AWS_SSH_KEY }}
+            script: |
+              # Install Nginx if not already installed
+              export DEBIAN_FRONTEND=noninteractive
+              if ! command -v nginx &> /dev/null; then
+                echo "Nginx not found, installing..."
+                sudo apt update
+                sudo apt install -y nginx
+                echo "Nginx has been installed."
+              else
+                echo "Nginx is already installed."
+              fi
+
+              #echo "Checking sudo access..."
+              #sudo -v && echo "Sudo access OK" || echo "Sudo access DENIED"
+
+              # Ensure Nginx config directory exists
+              echo "Preparing configs..."
+              sudo -n mkdir -p /etc/nginx/sites-available
+              sudo -n mkdir -p /etc/nginx/sites-enabled
+
+              # Copy the Nginx configuration file
+              echo " port: ${{ vars.SERVER_PORT }} "
+              export SERVER_PORT=${{ vars.SERVER_PORT }}
+              sudo -E envsubst '$SERVER_PORT' < /home/ubuntu/memories-api/deploy/nginx/nginx.conf > /etc/nginx/sites-available/memories-api
+              sudo ln -sf /etc/nginx/sites-available/memories-api /etc/nginx/sites-enabled/
+
+              # Validate and restart Nginx
+              sudo nginx -t && sudo systemctl restart nginx && echo "Nginx restarted successfully."

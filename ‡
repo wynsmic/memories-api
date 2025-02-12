@@ -1,0 +1,19 @@
+config: add nginx revers proxy
+
+# Please enter the commit message for your changes. Lines starting
+# with '#' will be ignored, and an empty message aborts the commit.
+#
+# Date:      Wed Feb 12 22:11:56 2025 +0100
+#
+# On branch main
+# Your branch is up to date with 'origin/main'.
+#
+# Changes to be committed:
+#	new file:   .github/workflows/deploy-nginx.yml
+#	new file:   .github/workflows/deploy-server.yml
+#	deleted:    .github/workflows/deploy.yml
+#	modified:   README.md
+#	new file:   deploy/nginx/nginx.conf
+#	new file:   ecosystem.config.js
+#	modified:   src/server.ts
+#

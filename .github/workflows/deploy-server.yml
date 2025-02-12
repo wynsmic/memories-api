@@ -1,0 +1,125 @@
+name: Deploy server to AWS
+
+on:
+  push:
+    branches:
+      - main
+      - staging
+
+jobs:
+  deploy-server:
+    runs-on: ubuntu-latest
+    environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }} #to know which git env variable to bring
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Set environment variables
+        run: |
+          echo "NODE_ENV=${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}" >> $GITHUB_ENV # available with $NODE_ENV
+
+      - name: Verify NODE_ENV
+        run: |
+          echo "NODE_ENV is set to $NODE_ENV"
+
+      - name: ckeck AWS SSH Key
+        run: |
+          echo " host: ${{ vars.AWS_HOST }}"
+          echo " username: ${{ vars.AWS_USER }} "
+          echo " key: ${{ secrets.AWS_SSH_KEY }} "
+
+      # Setup SSH Key
+      - name: Setup SSH Key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.AWS_SSH_KEY }}" > ~/.ssh/id_ed25519
+          chmod 700 ~/.ssh
+          chmod 600 ~/.ssh/id_ed25519
+          eval "$(ssh-agent -s)"
+          ssh-add ~/.ssh/id_ed25519
+
+      - name: Prepare infra to AWS
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ vars.AWS_HOST }}
+          username: ${{ vars.AWS_USER }}
+          key: ${{ secrets.AWS_SSH_KEY }}
+          script: |
+            set -e
+            echo "Deploying application..."
+
+            # Install Node.js (version >= 18)
+            if ! command -v node >/dev/null 2>&1 || [ "$(node -v | cut -d'.' -f1 | cut -c2-)" -lt 18 ]; then
+              echo "Node.js not found or version < 18. Installing..."
+              curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+              sudo apt-get install -y nodejs
+            else
+              echo "Node.js is already installed. Skipping installation."
+            fi
+
+            # Install pm2 globally
+            if ! command -v pm2 &> /dev/null; then
+              echo "PM2 not found. Installing..."
+              sudo npm install -g pm2
+             else
+              echo "PM2 is already installed. Skipping installation."
+            fi
+
+            # Give auth to clone
+            mkdir -p ~/.ssh
+            echo "${{ secrets.AWS_SSH_KEY }}" > ~/.ssh/id_ed25519
+            chmod 600 ~/.ssh/id_ed25519
+
+            # Init the project directory
+            rm -f ~/.pm2/logs/backend-error.log 
+            rm -f ~/.pm2/logs/backend-out.log 
+            PROJECT_DIR="/home/ubuntu/memories-api"
+            if [ -d "$PROJECT_DIR" ]; then
+              rm -rf "$PROJECT_DIR"
+              echo "Emptied: $PROJECT_DIR"
+            fi
+
+      - name: Deploy Git project to AWS
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ vars.AWS_HOST }}
+          username: ${{ vars.AWS_USER }}
+          key: ${{ secrets.AWS_SSH_KEY }}
+          script: |
+            # Clone repository
+            PROJECT_DIR="/home/ubuntu/memories-api"
+            git clone git@github.com:wynsmic/memories-api.git $PROJECT_DIR
+
+            # Install dependencies & build project
+            cd "$PROJECT_DIR"
+            npm install
+            npm run build
+
+
+            echo "Writing environment file..."
+            NODE_ENV="${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}"
+            mkdir -p ./config
+            cat <<EOF > ./config/.${NODE_ENV}.env
+            MONGO_CONNECTION_STRING=${{ secrets.MONGO_CONNECTION_STRING }}
+            NODE_ENV=${NODE_ENV}
+            SERVER_PORT=${{ vars.SERVER_PORT }}
+            WEBAPP_CLIENT_URL=${{ vars.WEBAPP_CLIENT_URL }}
+            EOF
+
+      - name: Deploy Git project to AWS
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ vars.AWS_HOST }}
+          username: ${{ vars.AWS_USER }}
+          key: ${{ secrets.AWS_SSH_KEY }}
+          script: |
+            # Restart PM2 process
+            cd /home/ubuntu/memories-api
+            npx tsc 
+            NODE_ENV="${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}"
+            pm2 restart ecosystem.config.js --env "$NODE_ENV" || pm2 start ecosystem.config.js --env "$NODE_ENV"
+
+      - name: Deployment of server completed
+        run: |
+          echo "Deployment to $(echo $GITHUB_REF | sed 's/refs\/heads\///') complete!"

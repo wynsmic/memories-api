@@ -25,7 +25,7 @@ const server = createServer(app);
 // Initialize Socket.IO adapter
 new SocketAdapter(server);
 
-server.listen(httpPort, () => {
+server.listen(httpPort,  () => {
   logger.info({
     component: "server",
     message: `Server running on port:${httpPort} with WebSocket support`,
