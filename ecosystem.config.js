@@ -8,13 +8,14 @@ module.exports = {
         watch: false,
         env: {
           NODE_ENV: "staging",
-          PORT: 8080,  
+          PORT: 8082,  
         },
         env_production: {
           NODE_ENV: "production",
-          PORT: 8080,  
+          PORT: 8082,  
         },
       },
     ],
   };
+  
   
