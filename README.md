@@ -20,6 +20,14 @@ To allow creation of config folder after nginx installation you will need to go 
 sudo chown -R <user>:<user> /etc/nginx
 
 
+* manage SSL certificates
+sudo apt update
+sudo apt install certbot python3-certbot-nginx
+sudo certbot --nginx -d <your public IP>
+
+
+* log contains information about each request that Nginx receives.
+(/var/log/nginx/access.log): This log contains information about each request that Nginx receives.
 
 # routes
 route /hb
