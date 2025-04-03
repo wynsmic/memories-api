@@ -51,8 +51,8 @@ jobs:
 
             # Install Node.js (version >= 18)
             if ! command -v node >/dev/null 2>&1 || [ "$(node -v | cut -d'.' -f1 | cut -c2-)" -lt 18 ]; then
-              echo "Node.js not found or version < 18. Installing..."
-              curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+              echo "Node.js not found or version < 20. Installing..."
+              curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
               sudo apt-get install -y nodejs
             else
               echo "Node.js is already installed. Skipping installation."
@@ -105,9 +105,31 @@ jobs:
             NODE_ENV=${NODE_ENV}
             SERVER_PORT=${{ vars.SERVER_PORT }}
             WEBAPP_CLIENT_URL=${{ vars.WEBAPP_CLIENT_URL }}
+            POSTGRES_URL=${{ secrets.POSTGRES_URL }}
+            POSTGRES_URL_MIGRATION=${{ secrets.POSTGRES_URL_MIGRATION }}
+            SUPABASE_SERVICE_ROLE_KEY=${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+            SUPABASE_JWT_SECRET=${{ secrets.SUPABASE_JWT_SECRET }}
+            AUTH0_SECRET=${{ secrets.AUTH0_SECRET }}
+            AUTH0_AUDIENCE=${{ vars.AUTH0_AUDIENCE }}
+            AUTH0_ISSUER=${{ vars.AUTH0_ISSUER }}
             EOF
 
-      - name: Deploy Git project to AWS
+      - name: Run Prisma Migrations
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ vars.AWS_HOST }}
+          username: ${{ vars.AWS_USER }}
+          key: ${{ secrets.AWS_SSH_KEY }}
+          script: |
+            echo "Running Prisma migrations..."
+            set -e
+            cd /home/ubuntu/memories-api
+            export $(cat config/.${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}.env | xargs) 
+            # get postgre migration url
+            export POSTGRES_URL=$POSTGRES_URL_MIGRATION
+            npx prisma migrate deploy
+
+      - name: Start project in aws
         uses: appleboy/ssh-action@v0.1.10
         with:
           host: ${{ vars.AWS_HOST }}

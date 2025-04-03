@@ -3,7 +3,7 @@ module.exports = {
     {
       name: 'memories-api',
       script: 'dist/main.js',
-      instances: 1, // Adjust for multiple instances
+      instances: 1,
       autorestart: true,
       watch: false,
       env: {
