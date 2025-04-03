@@ -202,7 +202,9 @@ $ npm run test:cov
 To generate the migraton file from the prisma.schema run:
 
 ```bash
-env $(cat config/.development.env | xargs) npx prisma migrate dev --name init
+export $(cat config/.development.env | xargs)
+export POSTGRES_URL=$POSTGRES_URL_MIGRATION
+npx prisma migrate dev --name init
 ```
 
 For production, use:
@@ -210,3 +212,12 @@ For production, use:
 ```bash
 npx prisma migrate deploy
 ```
+
+## Supabase
+
+Supabase must be configured to accept Auth0 tokens
+Supabase needs to trust Auth0 as a valid JWT issuer. You can do this by updating the authentication settings.
+
+In Supabase, go to Authentication → Settings.
+Set JWT Secret to Auth0’s RS256 public key.
+Set JWT Issuer to your Auth0 domain (https://your-auth0-tenant.auth0.com/).
