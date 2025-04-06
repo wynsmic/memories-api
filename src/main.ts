@@ -5,12 +5,16 @@ import { ConfigService } from '@nestjs/config';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
-    logger: ['log', 'error', 'warn'], // Enable desired log levels
+    logger: ['log', 'error', 'warn'],
+  });
+  app.enableCors({
+    origin: ['https://memories-ui-jet.vercel.app', 'http://localhost:3000'],
+    credentials: true, // if you're using cookies or auth headers
   });
   app.useGlobalPipes(new ValidationPipe());
 
   const configService = app.get(ConfigService);
-  const port = configService.get<number>('SERVER_PORT') || 3000;
+  const port = configService.get<number>('SERVER_PORT') || 3002;
 
   await app.listen(port);
 
