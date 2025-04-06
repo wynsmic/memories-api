@@ -49,8 +49,8 @@ jobs:
             set -e
             echo "Deploying application..."
 
-            # Install Node.js (version >= 18)
-            if ! command -v node >/dev/null 2>&1 || [ "$(node -v | cut -d'.' -f1 | cut -c2-)" -lt 18 ]; then
+            # Install Node.js (version >= 20)
+            if ! command -v node >/dev/null 2>&1 || [ "$(node -v | cut -d'.' -f1 | cut -c2-)" -lt 20 ]; then
               echo "Node.js not found or version < 20. Installing..."
               curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
               sudo apt-get install -y nodejs
