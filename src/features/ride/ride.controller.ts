@@ -1,5 +1,5 @@
 // Example controller
-import { Controller, Delete, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Patch, Post } from '@nestjs/common';
 import { RideData, RideService } from './ride.service';
 
 @Controller('ride')
@@ -16,8 +16,8 @@ export class RideController {
     return await this.rideService.cleanRideData();
   }
 
-  @Post('update')
-  async updateRide(ride: RideData) {
-    return await this.rideService.updateRideData(ride);
+  @Patch('patch')
+  async patchRide(@Body() dataToPatch: Partial<RideData>) {
+    return await this.rideService.patchRideData(dataToPatch);
   }
 }

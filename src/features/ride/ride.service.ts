@@ -1,48 +1,54 @@
 // src/json.service.ts
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { createSupabaseClient } from '../../supabase.client';
 
 @Injectable()
 export class RideService {
   private supabase;
+  private readonly logger = new Logger(RideService.name);
 
   constructor(private configService: ConfigService) {
     this.supabase = createSupabaseClient(configService); // Create the Supabase client using ConfigService
   }
 
   async loadRideData() {
-    // Store the JSON data in Supabase (assuming a table called `Ride`)
     const { data, error } = await this.supabase
       .from('Ride')
-      .upsert({ id: 1, json_content: ride });
+      .upsert({ id: '1', ride_data: ride });
 
     if (error) {
-      throw new Error('Error inserting JSON into Supabase');
+      this.logger.error('[Supabase Upsert Error]', error); // Use NestJS logger
+      throw new Error('Error upsert JSON into Supabase');
     }
 
     return data;
   }
 
   async cleanRideData() {
-    const { data, error } = await this.supabase.from('Ride').delete({});
+    const { data, error } = await this.supabase
+      .from('Ride')
+      .delete({})
+      .eq('id', '1');
 
     if (error) {
+      this.logger.error('[Supabase delete Error]', error); // Use NestJS logger
       throw new Error('Error deleting JSON into Supabase');
     }
 
     return data;
   }
 
-  async updateRideData(newRide: RideData) {
+  async patchRideData(patch: Partial<RideData>) {
     const { data, error } = await this.supabase
       .from('Ride')
-      .update({ id: 1, json_content: newRide });
+      .update({ ride_data: { ...ride, ...patch }, id: 1 })
+      .eq('id', '1');
 
     if (error) {
+      this.logger.error('[Supabase update Error]', error); // Use NestJS logger
       throw new Error('Error updating JSON into Supabase');
     }
-
     return data;
   }
 }

@@ -110,6 +110,6 @@ model Ride {
   id              String   @id @default(uuid())
   ride_data       Json
   createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  updatedAt       DateTime @default(now()) 
 }
 
