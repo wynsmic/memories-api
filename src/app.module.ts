@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { AuthModule } from './auth/auth.module';
 import { ProjectsModule } from './features/projects/project.module';
+import { RideModule } from './features/ride/ride.module';
 
 @Module({
   imports: [
@@ -11,6 +12,7 @@ import { ProjectsModule } from './features/projects/project.module';
     }),
     AuthModule,
     ProjectsModule,
+    RideModule,
   ],
 })
 export class AppModule {}

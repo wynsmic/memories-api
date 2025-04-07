@@ -203,7 +203,7 @@ To generate the migraton files from the prisma.schema run:
 
 ```bash
 export $(cat config/.development.env | xargs)
-export POSTGRES_URL=$POSTGRES_URL_MIGRATION
+export POSTGRES_URL=$POSTGRES_URL_NON_POOLING
 npx prisma migrate dev --name init
 ```
 

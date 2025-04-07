@@ -106,7 +106,8 @@ jobs:
             SERVER_PORT=${{ vars.SERVER_PORT }}
             WEBAPP_CLIENT_URL=${{ vars.WEBAPP_CLIENT_URL }}
             POSTGRES_URL=${{ secrets.POSTGRES_URL }}
-            POSTGRES_URL_MIGRATION=${{ secrets.POSTGRES_URL_MIGRATION }}
+            POSTGRES_URL_NON_POOLING=${{ secrets.POSTGRES_URL_NON_POOLING }}
+            SUPABASE_URL=${{ vars.SUPABASE_URL }}
             SUPABASE_SERVICE_ROLE_KEY=${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
             SUPABASE_JWT_SECRET=${{ secrets.SUPABASE_JWT_SECRET }}
             AUTH0_SECRET=${{ secrets.AUTH0_SECRET }}
@@ -126,7 +127,7 @@ jobs:
             cd /home/ubuntu/memories-api
             export $(cat config/.${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}.env | xargs) 
             # get postgre migration url
-            export POSTGRES_URL=$POSTGRES_URL_MIGRATION
+            export POSTGRES_URL=$POSTGRES_URL_NON_POOLING
             npx prisma migrate deploy
 
       - name: Start project in aws
