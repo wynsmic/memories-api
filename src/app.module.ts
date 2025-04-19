@@ -3,8 +3,9 @@ import { ConfigModule } from '@nestjs/config';
 import { AuthModule } from './auth/auth.module';
 import { ProjectsModule } from './features/projects/project.module';
 import { RideModule } from './features/ride/ride.module';
-import { HealthModule } from './health/health.module';
+import { HealthModule } from './features/health/health.module';
 import { LoggerMiddleware } from './middleware/logger.middleware';
+import { CallGateway } from './features/gateway/call-gateway';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { LoggerMiddleware } from './middleware/logger.middleware';
     ProjectsModule,
     RideModule,
   ],
+  providers: [CallGateway],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
