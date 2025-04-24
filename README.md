@@ -215,9 +215,6 @@ npx prisma migrate deploy
 
 ## Supabase
 
-Supabase must be configured to accept Auth0 tokens
-Supabase needs to trust Auth0 as a valid JWT issuer. You can do this by updating the authentication settings.
-
-In Supabase, go to Authentication → Settings.
-Set JWT Secret to Auth0’s RS256 public key.
-Set JWT Issuer to your Auth0 domain (https://your-auth0-tenant.auth0.com/).
+Supabase needs to trust Auth0 as a valid JWT issuer
+=> https://supabase.com/docs/guides/auth/third-party/auth0
+(not always up to date but give main direction)
