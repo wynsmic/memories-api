@@ -207,11 +207,25 @@ export POSTGRES_URL=$POSTGRES_URL_NON_POOLING
 npx prisma migrate dev --name init
 ```
 
+```bash
+prisma migrate reset
+```
+
 To deploy the CI/CD will use:
 
 ```bash
 npx prisma migrate deploy
 ```
+
+RLS may require grants for the front to fecth directly:
+
+In Supabase SQL Editor, run:
+GRANT USAGE ON SCHEMA public TO authenticated;
+GRANT SELECT ON ALL TABLES IN SCHEMA public TO authenticated;
+
+And to auto-apply it to new tables:
+ALTER DEFAULT PRIVILEGES IN SCHEMA public
+GRANT SELECT ON TABLES TO authenticated;
 
 ## Supabase
 

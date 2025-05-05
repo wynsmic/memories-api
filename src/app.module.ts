@@ -6,6 +6,7 @@ import { RideModule } from './features/ride/ride.module';
 import { HealthModule } from './features/health/health.module';
 import { LoggerMiddleware } from './middleware/logger.middleware';
 import { CallGateway } from './features/gateway/call-gateway';
+import { UserModule } from './features/user/user.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { CallGateway } from './features/gateway/call-gateway';
     HealthModule,
     AuthModule,
     ProjectsModule,
+    UserModule,
     RideModule,
   ],
   providers: [CallGateway],

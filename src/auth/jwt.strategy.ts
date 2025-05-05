@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { ConfigService } from '@nestjs/config';
+import * as jwksRsa from 'jwks-rsa';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
@@ -9,10 +10,16 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
-      secretOrKey: configService.get<string>('AUTH0_SECRET') || '',
+      //secretOrKey: configService.get<string>('AUTH0_SECRET') || '',
       audience: configService.get<string>('AUTH0_AUDIENCE') || '',
-      issuer: configService.get<string>('AUTHh0_ISSUER') || '',
+      issuer: configService.get<string>('AUTH0_ISSUER') || '',
       algorithms: ['RS256'],
+      secretOrKeyProvider: jwksRsa.passportJwtSecret({
+        cache: true,
+        rateLimit: true,
+        jwksRequestsPerMinute: 5,
+        jwksUri: `${configService.get<string>('AUTH0_ISSUER')}.well-known/jwks.json`,
+      }),
     });
   }
 

@@ -2,10 +2,13 @@ import { Module } from '@nestjs/common';
 import { JwtStrategy } from './jwt.strategy';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { ConfigModule } from '@nestjs/config';
+import { AuthController } from './auth.controller';
+import { AuthService } from './auth.service';
 
 @Module({
-  imports: [ConfigModule], // Si tu utilises des variables d'environnement
-  providers: [JwtStrategy, JwtAuthGuard],
-  exports: [JwtAuthGuard], // Tu peux exporter le guard si tu veux l'utiliser ailleurs
+  imports: [ConfigModule],
+  providers: [JwtStrategy, JwtAuthGuard, AuthService],
+  exports: [JwtAuthGuard, AuthService],
+  controllers: [AuthController],
 })
 export class AuthModule {}
