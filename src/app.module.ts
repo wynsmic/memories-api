@@ -7,12 +7,18 @@ import { HealthModule } from './features/health/health.module';
 import { LoggerMiddleware } from './middleware/logger.middleware';
 import { CallGateway } from './features/gateway/call-gateway';
 import { UserModule } from './features/user/user.module';
+import { join } from 'path';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: `config/.${process.env.NODE_ENV || 'development'}.env`,
+      envFilePath: join(
+        __dirname,
+        '..',
+        'config',
+        `.${process.env.NODE_ENV || 'development'}.env`,
+      ),
     }),
     HealthModule,
     AuthModule,
