@@ -9,7 +9,7 @@ async function bootstrap() {
   });
   app.enableCors({
     origin: ['https://memories-ui-jet.vercel.app', 'http://localhost:3000'],
-    credentials: true, // if you're using cookies or auth headers
+    credentials: true,
   });
   app.useGlobalPipes(new ValidationPipe());
 
