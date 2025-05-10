@@ -15,14 +15,12 @@ import { Prisma } from '@prisma/client';
 import { JwtAuthGuard } from '../../auth/jwt-auth.guard';
 import { AuthService } from '../../auth/auth.service';
 import { AuthenticatedRequest } from '../../auth/types/authenticated-request';
-import { UserService } from '../user/user.service';
 
 @Controller('projects')
 export class ProjectController {
   constructor(
     private readonly projectRepository: ProjectRepository,
     private authService: AuthService,
-    private userService: UserService,
   ) {}
 
   @UseGuards(JwtAuthGuard)

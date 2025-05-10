@@ -93,7 +93,7 @@ jobs:
 
             # Install dependencies & build project
             cd "$PROJECT_DIR"
-            npm install
+            npm install --verbose
             npm run build
 
 
