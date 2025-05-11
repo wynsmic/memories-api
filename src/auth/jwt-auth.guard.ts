@@ -7,7 +7,9 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
   private readonly logger = new Logger(JwtAuthGuard.name);
   canActivate(context: ExecutionContext) {
     const request = context.switchToHttp().getRequest<Request>();
-    this.logger.log('Authorization header:', request.headers.authorization); // Log the raw token
+    this.logger.log('Authorization header:', request.headers.authorization);
+    this.logger.log('Audience: ', process.env.AUTH0_AUDIENCE);
+    this.logger.log('Issuer: ', process.env.AUTH0_ISSUER);
     return super.canActivate(context);
   }
 

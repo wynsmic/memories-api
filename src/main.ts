@@ -11,6 +11,7 @@ async function bootstrap() {
     origin: ['https://memories-ui-jet.vercel.app', 'http://localhost:3000'],
     credentials: true,
   });
+
   app.useGlobalPipes(new ValidationPipe());
 
   const configService = app.get(ConfigService);
@@ -24,3 +25,5 @@ async function bootstrap() {
 }
 
 void bootstrap();
+console.log('Loading anv variables...');
+console.log(process.env);
