@@ -5,6 +5,10 @@ import {
   OnModuleDestroy,
 } from '@nestjs/common/interfaces';
 import { PrismaClientUnknownRequestError } from '@prisma/client/runtime/library';
+import { exec } from 'child_process';
+import { promisify } from 'util';
+
+const execAsync = promisify(exec);
 
 @Injectable()
 export class PrismaService
@@ -55,6 +59,18 @@ export class PrismaService
         throw err;
       }
     };
+  }
+  async onModuleInit() {
+    await this.$connect();
+
+    // Optional: auto-run migrations if needed
+    try {
+      console.log('Running Prisma migrations...');
+      await execAsync('npx prisma migrate deploy'); // deploys any pending migrations
+      console.log('Migrations applied successfully');
+    } catch (err) {
+      console.error('Error running migrations', err);
+    }
   }
 
   async onModuleDestroy() {

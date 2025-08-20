@@ -106,29 +106,10 @@ jobs:
             SERVER_PORT=${{ vars.SERVER_PORT }}
             WEBAPP_CLIENT_URL=${{ vars.WEBAPP_CLIENT_URL }}
             POSTGRES_URL=${{ secrets.POSTGRES_URL }}
-            POSTGRES_URL_NON_POOLING=${{ secrets.POSTGRES_URL_NON_POOLING }}
-            SUPABASE_URL=${{ vars.SUPABASE_URL }}
-            SUPABASE_SERVICE_ROLE_KEY=${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-            SUPABASE_JWT_SECRET=${{ secrets.SUPABASE_JWT_SECRET }}
             AUTH0_SECRET=${{ secrets.AUTH0_SECRET }}
             AUTH0_AUDIENCE=${{ vars.AUTH0_AUDIENCE }}
             AUTH0_ISSUER=${{ vars.AUTH0_ISSUER }}
             EOF
-
-      - name: Run Prisma Migrations
-        uses: appleboy/ssh-action@v0.1.10
-        with:
-          host: ${{ vars.AWS_HOST }}
-          username: ${{ vars.AWS_USER }}
-          key: ${{ secrets.AWS_SSH_KEY }}
-          script: |
-            echo "Running Prisma migrations..."
-            set -e
-            cd /home/ubuntu/memories-api
-            export $(cat config/.${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}.env | xargs) 
-            # get postgre migration url
-            export POSTGRES_URL=$POSTGRES_URL_NON_POOLING
-            npx prisma migrate deploy
 
       - name: Start project in aws
         uses: appleboy/ssh-action@v0.1.10

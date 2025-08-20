@@ -79,8 +79,9 @@ export class ProjectController {
   }
 
   @Get()
-  async findAll() {
-    return this.projectRepository.getProjects();
+  async findAllByMember(userId: string) {
+    const projects = await this.projectRepository.getProjectsByMember(userId);
+    return projects;
   }
 
   @Get(':id')

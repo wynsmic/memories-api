@@ -25,5 +25,5 @@ async function bootstrap() {
 }
 
 void bootstrap();
-console.log('Loading anv variables...');
+console.log('Loading env variables...');
 console.log(process.env);

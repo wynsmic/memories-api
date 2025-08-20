@@ -203,9 +203,11 @@ To generate the migraton files from the prisma.schema run:
 
 ```bash
 export $(cat config/.development.env | xargs)
-export POSTGRES_URL=$POSTGRES_URL_NON_POOLING
+export POSTGRES_URL=$POSTGRES_URL
 npx prisma migrate dev --name init
 ```
+
+Optionally to can drop tabeles and reapply all migrations files:
 
 ```bash
 prisma migrate reset
@@ -216,19 +218,3 @@ To deploy the CI/CD will use:
 ```bash
 npx prisma migrate deploy
 ```
-
-RLS may require grants for the front to fecth directly:
-
-In Supabase SQL Editor, run:
-GRANT USAGE ON SCHEMA public TO authenticated;
-GRANT SELECT ON ALL TABLES IN SCHEMA public TO authenticated;
-
-And to auto-apply it to new tables:
-ALTER DEFAULT PRIVILEGES IN SCHEMA public
-GRANT SELECT ON TABLES TO authenticated;
-
-## Supabase
-
-Supabase needs to trust Auth0 as a valid JWT issuer
-=> https://supabase.com/docs/guides/auth/third-party/auth0
-(not always up to date but give main direction)

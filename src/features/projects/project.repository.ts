@@ -10,8 +10,38 @@ export class ProjectRepository {
     return this.prisma.project.create({ data });
   }
 
-  async getProjects(): Promise<Project[]> {
-    return this.prisma.project.findMany();
+  async getProjectsByMember(userId: string) {
+    const query: Prisma.ProjectFindManyArgs = {
+      where: {
+        members: {
+          some: {
+            userId: userId, // <== filtre sur l'appartenance
+          },
+        },
+      },
+      include: {
+        members: {
+          include: {
+            user: true, // si tu veux les infos de l’utilisateur dans le membre
+          },
+        },
+        calls: {
+          select: {
+            id: true,
+            createdAt: true,
+          },
+        },
+        chapters: {
+          select: {
+            id: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    };
+    return this.prisma.project.findMany(query);
   }
 
   getProjectById = async (id: string): Promise<Project | null> => {

@@ -9,6 +9,7 @@ import {
   ConnectedSocket,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
+import { UserService } from '../user/user.service';
 
 @WebSocketGateway({ cors: true })
 export class CallGateway implements OnGatewayConnection, OnGatewayDisconnect {
@@ -16,6 +17,8 @@ export class CallGateway implements OnGatewayConnection, OnGatewayDisconnect {
   server!: Server;
 
   private users = new Map<string, string>(); // phone -> socketId
+
+  constructor(private readonly userService: UserService) {}
 
   private getSocketIdOrThrow(phone: string): string {
     const socketId = this.users.get(phone);
@@ -54,6 +57,38 @@ export class CallGateway implements OnGatewayConnection, OnGatewayDisconnect {
       this.server.to(targetSocketId).emit('call:incoming', {
         from: data.from,
       });
+    }
+  }
+
+  @SubscribeMessage('call-user')
+  async handleCallUser(
+    @MessageBody() data: { targetUserId: string },
+    @ConnectedSocket() socket: Socket,
+  ) {
+    const fromPhone = [...this.users.entries()].find(
+      ([, id]) => id === socket.id,
+    )?.[0];
+    let from:
+      | { id?: string; firstname?: string; lastname?: string; phone?: string }
+      | undefined;
+    if (fromPhone) {
+      const user = await this.userService.findUserByPhone(fromPhone);
+      if (user) {
+        from = {
+          id: user.id,
+          firstname: user.firstname,
+          lastname: user.lastname,
+          phone: user.phone,
+        };
+      } else {
+        from = { phone: fromPhone };
+      }
+    }
+    const targetSocketId = this.users.get(data.targetUserId);
+    if (targetSocketId) {
+      this.server.to(targetSocketId).emit('call:incoming', { from });
+    } else {
+      socket.emit('user:not_connected', { userId: data.targetUserId });
     }
   }
 
